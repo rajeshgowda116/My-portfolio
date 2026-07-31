@@ -1,18 +1,38 @@
 /* ==========================================================================
    RAJESH NAGAPPA GOUDA — PORTFOLIO INTERACTIVE JAVASCRIPT
-   Features: Scroll Observer, Animated Counters, Sticky Navbar, 
-   Mobile Navigation Drawer, Form Handler & Toast Alerts.
+   Features: Continuous Scroll Observer (re-triggers on scroll up & down), 
+   Animated Counters, Sticky Navbar, Mobile Navigation Drawer, Form Handler.
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // --- 1. STICKY NAVBAR SCROLL OBSERVER ---
+  // --- 1. SMOOTH ANCHOR LINK SCROLLING ---
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const targetId = this.getAttribute('href');
+      if (targetId === '#') return;
+      const targetElement = document.querySelector(targetId);
+      if (targetElement) {
+        e.preventDefault();
+        const headerOffset = 90;
+        const elementPosition = targetElement.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
+
+  // --- 2. STICKY NAVBAR SCROLL OBSERVER ---
   const header = document.querySelector('.header');
   const navLinks = document.querySelectorAll('.nav-link');
   const sections = document.querySelectorAll('section[id]');
 
   window.addEventListener('scroll', () => {
-    if (window.scrollY > 40) {
+    if (window.scrollY > 30) {
       header.classList.add('nav-scrolled');
     } else {
       header.classList.remove('nav-scrolled');
@@ -34,9 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
         link.classList.add('active');
       }
     });
-  });
+  }, { passive: true });
 
-  // --- 2. MOBILE HAMBURGER MENU TOGGLE ---
+  // --- 3. MOBILE HAMBURGER MENU TOGGLE ---
   const hamburger = document.querySelector('.hamburger');
   const mobileNav = document.querySelector('.mobile-nav-overlay');
   const mobileLinks = document.querySelectorAll('.mobile-nav-overlay .nav-link');
@@ -57,31 +77,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 3. SCROLL REVEAL ANIMATION OBSERVER ---
-  const revealElements = document.querySelectorAll('.reveal-up');
+  // --- 4. RE-TRIGGERING SCROLL REVEAL OBSERVER (ANIMATES EVERY TIME YOU SCROLL) ---
+  const revealElements = document.querySelectorAll('.reveal-up, .reveal-fade');
 
-  const revealObserver = new IntersectionObserver((entries, observer) => {
+  const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('active');
-        observer.unobserve(entry.target);
+      } else {
+        // Re-trigger animation every time user scrolls away and back
+        entry.target.classList.remove('active');
       }
     });
   }, {
-    threshold: 0.15,
+    threshold: 0.1,
     rootMargin: '0px 0px -40px 0px'
   });
 
   revealElements.forEach(el => revealObserver.observe(el));
 
-  // --- 4. ANIMATED STAT COUNTERS ---
+  // --- 5. ANIMATED STAT COUNTERS ---
   const statNumbers = document.querySelectorAll('.stat-num');
-  let counted = false;
 
   const countObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting && !counted) {
-        counted = true;
+      if (entry.isIntersecting) {
         statNumbers.forEach(stat => {
           const target = parseInt(stat.getAttribute('data-target') || '0', 10);
           const suffix = stat.getAttribute('data-suffix') || '';
@@ -100,14 +120,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     });
-  }, { threshold: 0.5 });
+  }, { threshold: 0.4 });
 
   const statsContainer = document.querySelector('.hero-stats');
   if (statsContainer) {
     countObserver.observe(statsContainer);
   }
 
-  // --- 5. CONTACT FORM SUBMISSION HANDLER ---
+  // --- 6. CONTACT FORM SUBMISSION HANDLER ---
   const contactForm = document.getElementById('contactForm');
   const toast = document.getElementById('toast');
 
